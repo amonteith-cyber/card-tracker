@@ -1,0 +1,12 @@
+
+# Local SQLite database files
+*.db
+*.db-shm
+*.db-wal
+
+# .NET build output
+bin/
+obj/
+
+# macOS metadata
+.DS_Store
