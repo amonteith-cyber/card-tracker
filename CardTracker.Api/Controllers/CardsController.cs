@@ -17,9 +17,47 @@ public class CardsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Card>>> GetCards()
+    public async Task<ActionResult<IEnumerable<Card>>> GetCards(
+        [FromQuery] string? sport,
+        [FromQuery] string? league,
+        [FromQuery] string? team,
+        [FromQuery] string? player)
     {
-        var cards = await _context.Cards
+        var query = _context.Cards.AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(sport))
+        {
+            var normalizedSport = sport.Trim().ToLower();
+
+            query = query.Where(card =>
+                card.Sport.ToLower() == normalizedSport);
+        }
+
+        if (!string.IsNullOrWhiteSpace(league))
+        {
+            var normalizedLeague = league.Trim().ToLower();
+
+            query = query.Where(card =>
+                card.League.ToLower() == normalizedLeague);
+        }
+
+        if (!string.IsNullOrWhiteSpace(team))
+        {
+            var normalizedTeam = team.Trim().ToLower();
+
+            query = query.Where(card =>
+                card.Team.ToLower() == normalizedTeam);
+        }
+
+        if (!string.IsNullOrWhiteSpace(player))
+        {
+            var normalizedPlayer = player.Trim().ToLower();
+
+            query = query.Where(card =>
+                card.PlayerName.ToLower().Contains(normalizedPlayer));
+        }
+
+        var cards = await query
             .OrderBy(card => card.PlayerName)
             .ThenBy(card => card.CardName)
             .ToListAsync();
