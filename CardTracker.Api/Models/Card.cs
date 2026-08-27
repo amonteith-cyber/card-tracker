@@ -42,7 +42,7 @@ public class Card
     [StringLength(2000, ErrorMessage = "Image URL cannot exceed 2000 characters.")]
     [Url(ErrorMessage = "Image URL must be a valid URL.")]
     [RegularExpression(
-        @"^https?://",
+        @"^https?://.+$",
         ErrorMessage = "Image URL must begin with http:// or https://."
     )]
     public string? ImageUrl { get; set; }
