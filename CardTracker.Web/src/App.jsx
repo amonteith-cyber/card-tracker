@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import CardItem from "./components/CardItem";
 import CardModal from "./components/CardModal";
 import CollectionStats from "./components/CollectionStats";
@@ -71,6 +71,9 @@ function App() {
   const [cards, setCards] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedSport, setSelectedSport] = useState("");
+  const [selectedLeague, setSelectedLeague] = useState("");
   const [isCardModalOpen, setIsCardModalOpen] = useState(false);
   const [editingCard, setEditingCard] = useState(null);
   const [cardFormValues, setCardFormValues] = useState(emptyCardForm);
@@ -259,6 +262,59 @@ function App() {
     loadCards();
   }, []);
 
+  const filteredCards = useMemo(() => {
+    const normalizedSearchTerm = searchTerm.trim().toLowerCase();
+
+    return cards.filter((card) => {
+      const matchesSearch =
+        !normalizedSearchTerm ||
+        card.playerName.toLowerCase().includes(normalizedSearchTerm) ||
+        card.team.toLowerCase().includes(normalizedSearchTerm) ||
+        card.cardName.toLowerCase().includes(normalizedSearchTerm);
+
+      const matchesSport =
+        !selectedSport || card.sport === selectedSport;
+
+      const matchesLeague =
+        !selectedLeague || card.league === selectedLeague;
+
+      return matchesSearch && matchesSport && matchesLeague;
+    });
+  }, [cards, searchTerm, selectedSport, selectedLeague]);
+
+  const sportOptions = useMemo(() => {
+    return [...new Set(cards.map((card) => card.sport).filter(Boolean))].sort(
+      (firstSport, secondSport) => firstSport.localeCompare(secondSport),
+    );
+  }, [cards]);
+
+  const leagueOptions = useMemo(() => {
+    return [
+      ...new Set(
+        cards
+          .filter((card) => !selectedSport || card.sport === selectedSport)
+          .map((card) => card.league)
+          .filter(Boolean),
+      ),
+    ].sort((firstLeague, secondLeague) =>
+      firstLeague.localeCompare(secondLeague),
+    );
+  }, [cards, selectedSport]);
+
+  const hasActiveFilters = Boolean(
+    searchTerm.trim() || selectedSport || selectedLeague,
+  );
+
+  function clearFilters() {
+    setSearchTerm("");
+    setSelectedSport("");
+    setSelectedLeague("");
+  }
+
+  function handleSportChange(event) {
+    setSelectedSport(event.target.value);
+    setSelectedLeague("");
+  }
 
   return (
     <div className="app-shell">
@@ -268,10 +324,18 @@ function App() {
             CardTracker
           </a>
 
-          <nav className="site-nav" aria-label="Main navigation">
-            <a href="#collection">My Collection</a>
-            <a href="#add-card">Add Card</a>
-          </nav>
+          <div className="header-search">
+            <label className="sr-only" htmlFor="card-search">
+              Search cards by player name, team name, or card set
+            </label>
+            <input
+              id="card-search"
+              type="search"
+              value={searchTerm}
+              onChange={(event) => setSearchTerm(event.target.value)}
+              placeholder="Search player, team, or card set..."
+            />
+          </div>
         </div>
       </header>
 
@@ -296,11 +360,26 @@ function App() {
           <div className="collection-panel__heading">
             <div>
               <h2>Cards</h2>
-              <p>
-                {isLoading
-                  ? "Loading collection..."
-                  : `${cards.length} card${cards.length === 1 ? "" : "s"} in your collection`}
-              </p>
+
+              <div className="collection-panel__summary">
+                <p role="status" aria-live="polite">
+                  {isLoading
+                    ? "Loading collection..."
+                    : hasActiveFilters
+                      ? `${filteredCards.length} of ${cards.length} card${cards.length === 1 ? "" : "s"} match your filters`
+                      : `${cards.length} card${cards.length === 1 ? "" : "s"} in your collection`}
+                </p>
+
+                {hasActiveFilters && (
+                  <button
+                    className="filter-clear-button"
+                    type="button"
+                    onClick={clearFilters}
+                  >
+                    Clear filters
+                  </button>
+                )}
+              </div>
             </div>
 
             <button
@@ -311,6 +390,42 @@ function App() {
             >
               Add Card
             </button>
+          </div>
+
+          <div className="collection-filters" role="group" aria-label="Filter cards">
+            <div className="filter-field">
+              <label htmlFor="sport-filter">Sport</label>
+              <select
+                id="sport-filter"
+                value={selectedSport}
+                onChange={handleSportChange}
+              >
+                <option value="">All sports</option>
+
+                {sportOptions.map((sport) => (
+                  <option key={sport} value={sport}>
+                    {sport}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="filter-field">
+              <label htmlFor="league-filter">League</label>
+              <select
+                id="league-filter"
+                value={selectedLeague}
+                onChange={(event) => setSelectedLeague(event.target.value)}
+              >
+                <option value="">All leagues</option>
+
+                {leagueOptions.map((league) => (
+                  <option key={league} value={league}>
+                    {league}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           {isLoading && (
@@ -337,9 +452,29 @@ function App() {
             </div>
           )}
 
-          {!isLoading && !errorMessage && cards.length > 0 && (
+          {!isLoading &&
+            !errorMessage &&
+            cards.length > 0 &&
+            filteredCards.length === 0 && (
+              <div className="no-results-state">
+                <h3>No matching cards found</h3>
+                <p>
+                  Try a different player, team, card set, sport, or league—or clear
+                  your filters to view the full collection.
+                </p>
+                <button
+                  className="primary-button"
+                  type="button"
+                  onClick={clearFilters}
+                >
+                  Clear filters
+                </button>
+              </div>
+            )}
+
+          {!isLoading && !errorMessage && filteredCards.length > 0 && (
             <div className="card-grid">
-              {cards.map((card) => (
+              {filteredCards.map((card) => (
                 <CardItem
                   key={card.id}
                   card={card}
