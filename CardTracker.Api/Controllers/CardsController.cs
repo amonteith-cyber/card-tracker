@@ -126,6 +126,7 @@ public class CardsController : ControllerBase
         existingCard.Condition = card.Condition;
         existingCard.EstimatedValue = card.EstimatedValue;
         existingCard.Notes = card.Notes;
+        existingCard.ImageUrl = card.ImageUrl;
 
         await _context.SaveChangesAsync();
 
