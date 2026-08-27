@@ -45,5 +45,27 @@ export function validateCardForm(values) {
         errors.notes = "Notes cannot exceed 1000 characters.";
     }
 
+    const imageUrl = values.imageUrl.trim();
+
+    if (imageUrl) {
+        if (imageUrl.length > 2000) {
+            errors.imageUrl = "Image URL cannot exceed 2000 characters.";
+        } else {
+            try {
+                const parsedUrl = new URL(imageUrl);
+
+                if (
+                    parsedUrl.protocol !== "http:" &&
+                    parsedUrl.protocol !== "https:"
+                ) {
+                    errors.imageUrl =
+                        "Image URL must begin with http:// or https://.";
+                }
+            } catch {
+                errors.imageUrl = "Enter a valid image URL.";
+            }
+        }
+    }
+
     return errors;
 }

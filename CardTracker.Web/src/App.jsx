@@ -17,6 +17,7 @@ const emptyCardForm = {
   condition: "",
   estimatedValue: "",
   notes: "",
+  imageUrl: "",
 };
 
 const apiBaseUrl = (import.meta.env.VITE_API_URL ?? "").replace(/\/$/, "");
@@ -128,6 +129,7 @@ function App() {
       condition: card.condition ?? "",
       estimatedValue: String(card.estimatedValue ?? ""),
       notes: card.notes ?? "",
+      imageUrl: card.imageUrl ?? "",
     });
     setCardFormErrors({});
     setFormSubmissionError("");

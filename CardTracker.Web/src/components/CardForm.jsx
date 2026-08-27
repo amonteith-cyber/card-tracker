@@ -1,3 +1,38 @@
+import { useEffect, useState } from "react";
+function ImagePreview({ imageUrl }) {
+    const [hasLoadError, setHasLoadError] = useState(false);
+
+    useEffect(() => {
+        setHasLoadError(false);
+    }, [imageUrl]);
+
+    if (!imageUrl.trim()) {
+        return null;
+    }
+
+    if (hasLoadError) {
+        return (
+            <div className="image-preview image-preview--error" role="status">
+                <strong>Image preview unavailable</strong>
+                <span>
+                    Check that the address points directly to a publicly available
+                    image.
+                </span>
+            </div>
+        );
+    }
+
+    return (
+        <figure className="image-preview">
+            <img
+                src={imageUrl}
+                alt="Card image preview"
+                onError={() => setHasLoadError(true)}
+            />
+            <figcaption>Image preview — not saved yet</figcaption>
+        </figure>
+    );
+}
 function FieldError({ fieldName, error }) {
     if (!error) {
         return null;
@@ -121,6 +156,22 @@ function CardForm({
                     />
                     <FieldError fieldName="cardName" error={errors.cardName} />
                 </label>
+
+                <label className="form-field form-field--full">
+                    <span>Image URL <em>(optional)</em></span>
+                    <input
+                        name="imageUrl"
+                        type="url"
+                        value={values.imageUrl}
+                        onChange={handleInputChange}
+                        placeholder="https://example.com/card-image.jpg"
+                        inputMode="url"
+                        {...getAccessibilityProps("imageUrl")}
+                    />
+                    <FieldError fieldName="imageUrl" error={errors.imageUrl} />
+                </label>
+
+                <ImagePreview imageUrl={values.imageUrl} />
 
                 <label className="form-field">
                     <span>Year</span>

@@ -1040,3 +1040,53 @@
     grid-template-columns: 1fr;
   }
 }
+
+.form-field em {
+  color: #64748b;
+  font-size: 0.85em;
+  font-style: normal;
+  font-weight: 500;
+}
+
+.image-preview {
+  display: grid;
+  place-items: center;
+  min-height: 14rem;
+  margin: 0;
+  padding: 1rem;
+  overflow: hidden;
+  background: #f8fafc;
+  border: 1px dashed #b9c5d6;
+  border-radius: 0.6rem;
+}
+
+.image-preview img {
+  display: block;
+  width: 100%;
+  max-width: 20rem;
+  max-height: 22rem;
+  object-fit: contain;
+  border-radius: 0.35rem;
+}
+
+.image-preview figcaption {
+  margin-top: 0.85rem;
+  color: #64748b;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.image-preview--error {
+  justify-items: start;
+  gap: 0.4rem;
+  color: #991b1b;
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+
+.image-preview--error span {
+  color: #7f1d1d;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
