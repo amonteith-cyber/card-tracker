@@ -17,6 +17,7 @@ const emptyCardForm = {
   condition: "",
   estimatedValue: "",
   notes: "",
+  imageUrl: "",
 };
 
 const apiBaseUrl = (import.meta.env.VITE_API_URL ?? "").replace(/\/$/, "");
@@ -65,7 +66,38 @@ function buildCardPayload(values) {
     condition: values.condition.trim(),
     estimatedValue: Number(values.estimatedValue),
     notes: values.notes.trim() || null,
+    imageUrl: values.imageUrl.trim() || null,
   };
+}
+
+function CardDetailImage({ imageUrl, cardName }) {
+  const [hasLoadError, setHasLoadError] = useState(false);
+
+  useEffect(() => {
+    setHasLoadError(false);
+  }, [imageUrl]);
+
+  if (!imageUrl?.trim()) {
+    return null;
+  }
+
+  if (hasLoadError) {
+    return (
+      <div className="card-detail__image-error" role="status">
+        Card image unavailable. Check that the saved image address is public.
+      </div>
+    );
+  }
+
+  return (
+    <figure className="card-detail__image">
+      <img
+        src={imageUrl}
+        alt={cardName ? `${cardName} card image` : "Card image"}
+        onError={() => setHasLoadError(true)}
+      />
+    </figure>
+  );
 }
 
 function App() {
@@ -83,6 +115,7 @@ function App() {
   const [formSubmissionError, setFormSubmissionError] = useState("");
   const [deletingCardId, setDeletingCardId] = useState(null);
   const [deleteErrorMessage, setDeleteErrorMessage] = useState("");
+  const [selectedCard, setSelectedCard] = useState(null);
 
   async function loadCards() {
     setIsLoading(true);
@@ -127,6 +160,7 @@ function App() {
       condition: card.condition ?? "",
       estimatedValue: String(card.estimatedValue ?? ""),
       notes: card.notes ?? "",
+      imageUrl: card.imageUrl ?? "",
     });
     setCardFormErrors({});
     setFormSubmissionError("");
@@ -317,11 +351,24 @@ function App() {
     setSelectedLeague("");
   }
 
+  function openCardDetails(card) {
+    setSelectedCard(card);
+  }
+
+  function returnToCollection(event) {
+    event.preventDefault();
+    setSelectedCard(null);
+  }
+
   return (
     <div className="app-shell">
       <header className="site-header">
         <div className="site-header__content">
-          <a className="brand" href="/">
+          <a
+            className="brand"
+            href="/"
+            onClick={selectedCard ? returnToCollection : undefined}
+          >
             CardTracker
           </a>
 
@@ -346,147 +393,218 @@ function App() {
             {deleteErrorMessage}
           </div>
         )}
-        <section className="page-intro">
-          <p className="eyebrow">COLLECTIBLE CARD ORGANIZER</p>
-          <h1>My Collection</h1>
-          <p className="page-intro__description">
-            Organize sports cards by sport, league, team, player, and card
-            details.
-          </p>
-        </section>
+        {selectedCard ? (
+          <section className="card-detail" aria-labelledby="card-detail-title">
+            <p className="eyebrow">COLLECTION CARD</p>
 
-        <CollectionStats cards={cards} isLoading={isLoading} />
+            <h1 id="card-detail-title">
+              {selectedCard.playerName || "Unnamed player"}
+            </h1>
 
-        <section className="collection-panel" id="collection">
-          <div className="collection-panel__heading">
-            <div>
-              <h2>Cards</h2>
+            <p className="card-detail__name">
+              {selectedCard.cardName || "Untitled card"}
+            </p>
 
-              <div className="collection-panel__summary">
-                <p role="status" aria-live="polite">
-                  {isLoading
-                    ? "Loading collection..."
-                    : hasActiveFilters
-                      ? `${filteredCards.length} of ${cards.length} card${cards.length === 1 ? "" : "s"} match your filters`
-                      : `${cards.length} card${cards.length === 1 ? "" : "s"} in your collection`}
-                </p>
+            <div className="card-detail__tags">
+              {selectedCard.sport && (
+                <span className="tag tag--sport">{selectedCard.sport}</span>
+              )}
 
-                {hasActiveFilters && (
-                  <button
-                    className="filter-clear-button"
-                    type="button"
-                    onClick={clearFilters}
-                  >
-                    Clear filters
-                  </button>
-                )}
+              {selectedCard.league && (
+                <span className="tag tag--league">{selectedCard.league}</span>
+              )}
+            </div>
+
+            <CardDetailImage
+              imageUrl={selectedCard.imageUrl}
+              cardName={selectedCard.cardName}
+            />
+
+            <dl className="card-detail__facts">
+              <div>
+                <dt>Year</dt>
+                <dd>{selectedCard.year || "Not specified"}</dd>
               </div>
-            </div>
 
-            <button
-              className="primary-button"
-              id="add-card"
-              type="button"
-              onClick={openAddModal}
-            >
-              Add Card
-            </button>
-          </div>
-
-          <div className="collection-filters" role="group" aria-label="Filter cards">
-            <div className="filter-field">
-              <label htmlFor="sport-filter">Sport</label>
-              <select
-                id="sport-filter"
-                value={selectedSport}
-                onChange={handleSportChange}
-              >
-                <option value="">All sports</option>
-
-                {sportOptions.map((sport) => (
-                  <option key={sport} value={sport}>
-                    {sport}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="filter-field">
-              <label htmlFor="league-filter">League</label>
-              <select
-                id="league-filter"
-                value={selectedLeague}
-                onChange={(event) => setSelectedLeague(event.target.value)}
-              >
-                <option value="">All leagues</option>
-
-                {leagueOptions.map((league) => (
-                  <option key={league} value={league}>
-                    {league}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          {isLoading && (
-            <LoadingSpinner message="Loading your card collection..." />
-          )}
-
-          {!isLoading && errorMessage && (
-            <div className="error-state" role="alert">
-              <h3>Cards could not be loaded</h3>
-              <p>{errorMessage}</p>
-              <button className="secondary-button" type="button" onClick={loadCards}>
-                Retry
-              </button>
-            </div>
-          )}
-
-          {!isLoading && !errorMessage && cards.length === 0 && (
-            <div className="empty-state">
-              <h3>Your collection is empty</h3>
-              <p>
-                Add your first card to begin organizing your sports-card
-                collection.
-              </p>
-            </div>
-          )}
-
-          {!isLoading &&
-            !errorMessage &&
-            cards.length > 0 &&
-            filteredCards.length === 0 && (
-              <div className="no-results-state">
-                <h3>No matching cards found</h3>
-                <p>
-                  Try a different player, team, card set, sport, or league—or clear
-                  your filters to view the full collection.
-                </p>
-                <button
-                  className="primary-button"
-                  type="button"
-                  onClick={clearFilters}
-                >
-                  Clear filters
-                </button>
+              <div>
+                <dt>Team</dt>
+                <dd>{selectedCard.team || "Not specified"}</dd>
               </div>
+
+              <div>
+                <dt>Condition</dt>
+                <dd>{selectedCard.condition || "Not specified"}</dd>
+              </div>
+
+              <div>
+                <dt>Estimated value</dt>
+                <dd>
+                  {new Intl.NumberFormat("en-CA", {
+                    style: "currency",
+                    currency: "CAD",
+                  }).format(selectedCard.estimatedValue)}
+                </dd>
+              </div>
+            </dl>
+
+            {selectedCard.notes?.trim() && (
+              <section className="card-detail__notes" aria-labelledby="card-notes-title">
+                <h2 id="card-notes-title">Notes</h2>
+                <p>{selectedCard.notes}</p>
+              </section>
             )}
 
-          {!isLoading && !errorMessage && filteredCards.length > 0 && (
-            <div className="card-grid">
-              {filteredCards.map((card) => (
-                <CardItem
-                  key={card.id}
-                  card={card}
-                  onEdit={openEditModal}
-                  onDelete={handleDeleteCard}
-                  isDeleting={deletingCardId === card.id}
-                />
-              ))}
-            </div>
-          )}
-        </section>
+            <p className="card-detail__return-hint">
+              Select <strong>CardTracker</strong> in the top-left corner to return to
+              your collection.
+            </p>
+          </section>
+        ) : (
+          <>
+            <section className="page-intro">
+              <p className="eyebrow">COLLECTIBLE CARD ORGANIZER</p>
+              <h1>My Collection</h1>
+              <p className="page-intro__description">
+                Organize sports cards by sport, league, team, player, and card
+                details.
+              </p>
+            </section>
+
+            <CollectionStats cards={cards} isLoading={isLoading} />
+
+            <section className="collection-panel" id="collection">
+              <div className="collection-panel__heading">
+                <div>
+                  <h2>Cards</h2>
+
+                  <div className="collection-panel__summary">
+                    <p role="status" aria-live="polite">
+                      {isLoading
+                        ? "Loading collection..."
+                        : hasActiveFilters
+                          ? `${filteredCards.length} of ${cards.length} card${cards.length === 1 ? "" : "s"} match your filters`
+                          : `${cards.length} card${cards.length === 1 ? "" : "s"} in your collection`}
+                    </p>
+
+                    {hasActiveFilters && (
+                      <button
+                        className="filter-clear-button"
+                        type="button"
+                        onClick={clearFilters}
+                      >
+                        Clear filters
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <button
+                  className="primary-button"
+                  id="add-card"
+                  type="button"
+                  onClick={openAddModal}
+                >
+                  Add Card
+                </button>
+              </div>
+
+              <div className="collection-filters" role="group" aria-label="Filter cards">
+                <div className="filter-field">
+                  <label htmlFor="sport-filter">Sport</label>
+                  <select
+                    id="sport-filter"
+                    value={selectedSport}
+                    onChange={handleSportChange}
+                  >
+                    <option value="">All sports</option>
+
+                    {sportOptions.map((sport) => (
+                      <option key={sport} value={sport}>
+                        {sport}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="filter-field">
+                  <label htmlFor="league-filter">League</label>
+                  <select
+                    id="league-filter"
+                    value={selectedLeague}
+                    onChange={(event) => setSelectedLeague(event.target.value)}
+                  >
+                    <option value="">All leagues</option>
+
+                    {leagueOptions.map((league) => (
+                      <option key={league} value={league}>
+                        {league}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {isLoading && (
+                <LoadingSpinner message="Loading your card collection..." />
+              )}
+
+              {!isLoading && errorMessage && (
+                <div className="error-state" role="alert">
+                  <h3>Cards could not be loaded</h3>
+                  <p>{errorMessage}</p>
+                  <button className="secondary-button" type="button" onClick={loadCards}>
+                    Retry
+                  </button>
+                </div>
+              )}
+
+              {!isLoading && !errorMessage && cards.length === 0 && (
+                <div className="empty-state">
+                  <h3>Your collection is empty</h3>
+                  <p>
+                    Add your first card to begin organizing your sports-card
+                    collection.
+                  </p>
+                </div>
+              )}
+
+              {!isLoading &&
+                !errorMessage &&
+                cards.length > 0 &&
+                filteredCards.length === 0 && (
+                  <div className="no-results-state">
+                    <h3>No matching cards found</h3>
+                    <p>
+                      Try a different player, team, card set, sport, or league—or clear
+                      your filters to view the full collection.
+                    </p>
+                    <button
+                      className="primary-button"
+                      type="button"
+                      onClick={clearFilters}
+                    >
+                      Clear filters
+                    </button>
+                  </div>
+                )}
+
+              {!isLoading && !errorMessage && filteredCards.length > 0 && (
+                <div className="card-grid">
+                  {filteredCards.map((card) => (
+                    <CardItem
+                      key={card.id}
+                      card={card}
+                      onEdit={openEditModal}
+                      onDelete={handleDeleteCard}
+                      onSelect={openCardDetails}
+                      isDeleting={deletingCardId === card.id}
+                    />
+                  ))}
+                </div>
+              )}
+            </section>
+          </>
+        )}
       </main>
 
       <CardModal

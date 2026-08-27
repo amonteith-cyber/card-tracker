@@ -3,6 +3,7 @@ using System;
 using CardTracker.Api.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CardTracker.Api.Migrations
 {
     [DbContext(typeof(CardCollectionDbContext))]
-    partial class CardCollectionDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260827195741_AddCardImageUrl")]
+    partial class AddCardImageUrl
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.14");

@@ -39,5 +39,13 @@ public class Card
     [StringLength(1000, ErrorMessage = "Notes cannot exceed 1000 characters.")]
     public string? Notes { get; set; }
 
+    [StringLength(2000, ErrorMessage = "Image URL cannot exceed 2000 characters.")]
+    [Url(ErrorMessage = "Image URL must be a valid URL.")]
+    [RegularExpression(
+        @"^https?://.+$",
+        ErrorMessage = "Image URL must begin with http:// or https://."
+    )]
+    public string? ImageUrl { get; set; }
+
     public DateTime DateAdded { get; set; } = DateTime.UtcNow;
 }
