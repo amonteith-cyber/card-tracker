@@ -1,4 +1,4 @@
-function CardItem({ card }) {
+function CardItem({ card, onEdit, onDelete, isDeleting }) {
     const formattedValue = new Intl.NumberFormat("en-CA", {
         style: "currency",
         currency: "CAD",
@@ -34,6 +34,26 @@ function CardItem({ card }) {
             <div className="card-item__details">
                 <span>{card.condition}</span>
                 <strong>{formattedValue}</strong>
+            </div>
+
+            <div className="card-item__actions">
+                <button
+                    className="card-action-button"
+                    type="button"
+                    onClick={() => onEdit(card)}
+                    disabled={isDeleting}
+                >
+                    Edit
+                </button>
+
+                <button
+                    className="card-delete-button"
+                    type="button"
+                    onClick={() => onDelete(card)}
+                    disabled={isDeleting}
+                >
+                    {isDeleting ? "Deleting..." : "Delete"}
+                </button>
             </div>
         </article>
     );
