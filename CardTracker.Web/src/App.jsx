@@ -19,7 +19,8 @@ const emptyCardForm = {
   notes: "",
 };
 
-const cardsApiUrl = "/api/cards";
+const apiBaseUrl = (import.meta.env.VITE_API_URL ?? "").replace(/\/$/, "");
+const cardsApiUrl = `${apiBaseUrl}/api/cards`;
 
 function normalizeServerValidationErrors(serverErrors) {
   const normalizedErrors = {};
