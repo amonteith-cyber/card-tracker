@@ -1,41 +1,9 @@
 import { useEffect, useState } from "react";
+import CardItem from "./components/CardItem";
+import CollectionStats from "./components/CollectionStats";
+import LoadingSpinner from "./components/LoadingSpinner";
 import "./App.css";
 
-function SummaryCard({ label, value }) {
-  return (
-    <article className="summary-card">
-      <p className="summary-card__label">{label}</p>
-      <p className="summary-card__value">{value}</p>
-    </article>
-  );
-}
-
-function CardItem({ card }) {
-  const formattedValue = new Intl.NumberFormat("en-CA", {
-    style: "currency",
-    currency: "CAD",
-  }).format(card.estimatedValue);
-
-  return (
-    <article className="card-item">
-      <div className="card-item__top-row">
-        <span className="tag">
-          {card.sport} · {card.league}
-        </span>
-        <span className="card-item__year">{card.year}</span>
-      </div>
-
-      <h3>{card.playerName}</h3>
-      <p className="card-item__name">{card.cardName}</p>
-      <p className="card-item__team">{card.team}</p>
-
-      <div className="card-item__details">
-        <span>{card.condition}</span>
-        <strong>{formattedValue}</strong>
-      </div>
-    </article>
-  );
-}
 
 function App() {
   const [cards, setCards] = useState([]);
@@ -69,17 +37,6 @@ function App() {
     loadCards();
   }, []);
 
-  const totalValue = cards.reduce(
-    (sum, card) => sum + Number(card.estimatedValue),
-    0,
-  );
-
-  const sportCount = new Set(cards.map((card) => card.sport)).size;
-
-  const formattedTotalValue = new Intl.NumberFormat("en-CA", {
-    style: "currency",
-    currency: "CAD",
-  }).format(totalValue);
 
   return (
     <div className="app-shell">
@@ -106,11 +63,7 @@ function App() {
           </p>
         </section>
 
-        <section className="summary-grid" aria-label="Collection summary">
-          <SummaryCard label="Total Cards" value={cards.length} />
-          <SummaryCard label="Collection Value" value={formattedTotalValue} />
-          <SummaryCard label="Sports Collected" value={sportCount} />
-        </section>
+        <CollectionStats cards={cards} isLoading={isLoading} />
 
         <section className="collection-panel" id="collection">
           <div className="collection-panel__heading">
@@ -129,10 +82,7 @@ function App() {
           </div>
 
           {isLoading && (
-            <div className="empty-state">
-              <h3>Loading your card collection</h3>
-              <p>Please wait while CardTracker retrieves your cards.</p>
-            </div>
+            <LoadingSpinner message="Loading your card collection..." />
           )}
 
           {!isLoading && errorMessage && (
