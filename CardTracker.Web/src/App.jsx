@@ -66,7 +66,38 @@ function buildCardPayload(values) {
     condition: values.condition.trim(),
     estimatedValue: Number(values.estimatedValue),
     notes: values.notes.trim() || null,
+    imageUrl: values.imageUrl.trim() || null,
   };
+}
+
+function CardDetailImage({ imageUrl, cardName }) {
+  const [hasLoadError, setHasLoadError] = useState(false);
+
+  useEffect(() => {
+    setHasLoadError(false);
+  }, [imageUrl]);
+
+  if (!imageUrl?.trim()) {
+    return null;
+  }
+
+  if (hasLoadError) {
+    return (
+      <div className="card-detail__image-error" role="status">
+        Card image unavailable. Check that the saved image address is public.
+      </div>
+    );
+  }
+
+  return (
+    <figure className="card-detail__image">
+      <img
+        src={imageUrl}
+        alt={cardName ? `${cardName} card image` : "Card image"}
+        onError={() => setHasLoadError(true)}
+      />
+    </figure>
+  );
 }
 
 function App() {
@@ -383,6 +414,11 @@ function App() {
                 <span className="tag tag--league">{selectedCard.league}</span>
               )}
             </div>
+
+            <CardDetailImage
+              imageUrl={selectedCard.imageUrl}
+              cardName={selectedCard.cardName}
+            />
 
             <dl className="card-detail__facts">
               <div>

@@ -1090,3 +1090,34 @@
   font-size: 0.9rem;
   line-height: 1.5;
 }
+
+.card-detail__image {
+  display: grid;
+  place-items: center;
+  min-height: 18rem;
+  margin: 2rem 0 0;
+  padding: 1rem;
+  overflow: hidden;
+  background: #f8fafc;
+  border: 1px solid #dbe2ed;
+  border-radius: 0.6rem;
+}
+
+.card-detail__image img {
+  display: block;
+  width: 100%;
+  max-width: 28rem;
+  max-height: 32rem;
+  object-fit: contain;
+  border-radius: 0.35rem;
+}
+
+.card-detail__image-error {
+  margin-top: 2rem;
+  padding: 1rem;
+  color: #7f1d1d;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 0.6rem;
+  line-height: 1.5;
+}

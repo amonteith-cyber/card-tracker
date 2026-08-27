@@ -29,7 +29,7 @@ function ImagePreview({ imageUrl }) {
                 alt="Card image preview"
                 onError={() => setHasLoadError(true)}
             />
-            <figcaption>Image preview — not saved yet</figcaption>
+            <figcaption>Card image preview</figcaption>
         </figure>
     );
 }
